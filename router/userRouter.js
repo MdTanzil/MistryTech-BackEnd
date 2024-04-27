@@ -1,6 +1,6 @@
 const { ReasonPhrases, StatusCodes } = require("http-status-codes");
 const express = require("express");
-const User = require("../models/UserModel");
+const { User } = require("../models");
 
 const userRouter = express.Router();
 // status code import
@@ -25,6 +25,7 @@ userRouter.get("/", async (req, res) => {
     res.status(StatusCodes.OK).json({
       totalPages,
       currentPage: page,
+      total: totalUsers,
       users,
     });
   } catch (error) {
@@ -89,25 +90,30 @@ userRouter.put("/:id", (req, res) => {
 
 //Delete a User
 
-userRouter.delete("/:id", (req, res) => {
-  const id = req.params.id;
-  User.findByIdAndDelete(id,{ new: true })
-    .then((doc) => {
-      res.status(StatusCodes.OK).json({
-        status: StatusCodes.OK,
-        id: id,
-        message: ReasonPhrases.OK,
+userRouter.delete("/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const deletedUser = await User.findByIdAndDelete(id);
+
+    if (!deletedUser) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        message: ReasonPhrases.NOT_FOUND,
       });
-    })
-    .catch((err) => {
-      res.status(StatusCodes.BAD_REQUEST).json({
-        status: StatusCodes.BAD_REQUEST,
-        message: ReasonPhrases.BAD_REQUEST,
-      });
+    }
+
+    res.status(StatusCodes.OK).json({
+      status: StatusCodes.OK,
+      id: id,
+      message: ReasonPhrases.OK,
     });
+  } catch (error) {
+    res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      message: ReasonPhrases.BAD_REQUEST,
+    });
+  }
 });
-
-
-
 
 module.exports = userRouter;

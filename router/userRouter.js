@@ -1,0 +1,113 @@
+const { ReasonPhrases, StatusCodes } = require("http-status-codes");
+const express = require("express");
+const User = require("../models/UserModel");
+
+const userRouter = express.Router();
+// status code import
+
+// get users
+userRouter.get("/", async (req, res) => {
+  const perPage = parseInt(req.query.perPage) || 10; // Number of users per page (default is 10)
+  const page = parseInt(req.query.page) || 1; // Page number (default is 1)
+  try {
+    // Find total number of users
+    const totalUsers = await User.countDocuments();
+
+    // Calculate total number of pages
+    const totalPages = Math.ceil(totalUsers / perPage);
+
+    // Calculate the starting index of users for the requested page
+    const startIndex = (page - 1) * perPage;
+
+    // Query users for the requested page
+    const users = await User.find().skip(startIndex).limit(perPage);
+
+    res.status(StatusCodes.OK).json({
+      totalPages,
+      currentPage: page,
+      users,
+    });
+  } catch (error) {
+    res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      message: ReasonPhrases.BAD_REQUEST,
+    });
+  }
+});
+
+//Add a User
+userRouter.post("/", (req, res) => {
+  const users = req.body;
+  const user = new User(users);
+  user
+    .save()
+    .then((doc) => {
+      // console.log("Data saved successfully:", doc);
+      res.status(StatusCodes.OK).json(doc);
+    })
+    .catch((err) => {
+      console.error("Error saving data:", err);
+      res.status(StatusCodes.BAD_REQUEST).json({
+        status: StatusCodes.BAD_REQUEST,
+        message: ReasonPhrases.BAD_REQUEST,
+      });
+    });
+});
+
+//get a specific user
+
+userRouter.get("/:id", (req, res) => {
+  const id = req.params.id;
+  User.findById(id)
+    .then((doc) => {
+      res.status(StatusCodes.OK).json(doc);
+    })
+    .catch((err) => {
+      res.status(StatusCodes.BAD_REQUEST).json({
+        status: StatusCodes.BAD_REQUEST,
+        message: ReasonPhrases.BAD_REQUEST,
+      });
+    });
+});
+
+//update a user
+
+userRouter.put("/:id", (req, res) => {
+  const id = req.params.id;
+  const user = req.body;
+  User.findByIdAndUpdate(id, user, { new: true })
+    .then((doc) => {
+      res.status(StatusCodes.OK).json(doc);
+    })
+    .catch((err) => {
+      res.status(StatusCodes.BAD_REQUEST).json({
+        status: StatusCodes.BAD_REQUEST,
+        message: ReasonPhrases.BAD_REQUEST,
+      });
+    });
+});
+
+//Delete a User
+
+userRouter.delete("/:id", (req, res) => {
+  const id = req.params.id;
+  User.findByIdAndDelete(id,{ new: true })
+    .then((doc) => {
+      res.status(StatusCodes.OK).json({
+        status: StatusCodes.OK,
+        id: id,
+        message: ReasonPhrases.OK,
+      });
+    })
+    .catch((err) => {
+      res.status(StatusCodes.BAD_REQUEST).json({
+        status: StatusCodes.BAD_REQUEST,
+        message: ReasonPhrases.BAD_REQUEST,
+      });
+    });
+});
+
+
+
+
+module.exports = userRouter;

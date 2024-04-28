@@ -10,7 +10,7 @@ const storage = multer.diskStorage({
     const fileExt = file.originalname.split(".").pop();
     // Generate a unique filename
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + "-" + uniqueSuffix + "." + fileExt);
+    cb(null, file.originalname + "-" + uniqueSuffix + "." + fileExt);
   },
 });
 

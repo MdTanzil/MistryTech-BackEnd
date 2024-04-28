@@ -1,9 +1,11 @@
 const { ReasonPhrases, StatusCodes } = require("http-status-codes");
 const express = require("express");
 const { Category } = require("../models");
+const { fileUpload } = require("../config");
 
+require("dotenv").config();
 const categoryRouter = express.Router();
-
+const serverAddress = process.env.SERVER_ADDRESS || "http://localhost:3000";
 // Get all categories
 categoryRouter.get("/", async (req, res) => {
   const perPage = parseInt(req.query.perPage) || 10; // Number of category per page (default is 10)
@@ -36,12 +38,27 @@ categoryRouter.get("/", async (req, res) => {
 });
 
 //Create a new category
-categoryRouter.post("/", async (req, res) => {
+categoryRouter.post("/", fileUpload.single("image"), async (req, res) => {
   try {
     const { name, description } = req.body;
-    const category = new Category({ name, description });
-    await category.save();
-    res.status(StatusCodes.OK).json(category);
+
+    if (!req.file) {
+      // without image 
+      const category = new Category({ name, description });
+      await category.save();
+      res.status(StatusCodes.OK).json(category);
+    } else {
+      // with image
+      const category = new Category({
+        name,
+        description,
+        imagePath: `${serverAddress}/uploads/${req.file.filename}`,
+      });
+      console.log("eituk thik ase");
+      await category.save();
+      console.log("eituk0 thik ase");
+      res.status(StatusCodes.OK).json(category);
+    }
   } catch (err) {
     res.status(StatusCodes.BAD_REQUEST).json({
       status: StatusCodes.BAD_REQUEST,

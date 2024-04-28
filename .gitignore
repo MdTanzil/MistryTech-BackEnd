@@ -16,6 +16,7 @@ logs/
 # OS generated files
 .DS_Store
 Thumbs.db
+uploads
 
 # Optional: Compiled files
 # (Uncomment these lines if you compile your assets before deployment)

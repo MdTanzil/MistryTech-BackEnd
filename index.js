@@ -7,15 +7,24 @@ const { userRouter, categoryRouter } = require("./router");
 const app = express();
 const port = 3000;
 
-//middlewares
+//--------------------------------------------------
+//              Middlewares
+//--------------------------------------------------
 
+//Json parser
 app.use(express.json());
 // Enable CORS for all routes
 app.use(cors(corsSetting));
+// Serve static files from the 'uploads' directory
+app.use("/uploads", express.static("uploads"));
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("API Active");
 });
+
+//--------------------------------------------------
+//              Routes
+//--------------------------------------------------
 
 app.use("/user", userRouter);
 app.use("/categories", categoryRouter);

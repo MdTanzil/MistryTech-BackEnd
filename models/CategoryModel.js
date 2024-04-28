@@ -13,8 +13,9 @@ const categorySchema = new Schema({
   },
   slug: {
     type: String,
-    
-    unique: true,
+  },
+  imagePath: {
+    type: String,
   },
   createdAt: {
     type: Date,
@@ -31,7 +32,6 @@ const categorySchema = new Schema({
 });
 
 // Middleware to update 'updatedAt' field before each save
-// and update slug feild
 categorySchema.pre("save", function (next) {
   this.updatedAt = new Date();
   if (!this.isModified("name")) {

@@ -7,7 +7,8 @@ const userRouter = express.Router();
 
 // get users
 userRouter.get("/", async (req, res) => {
-  const perPage = parseInt(req.query.perPage) || 10; // Number of users per page (default is 10)
+  const perPage = parseInt(req.query.perPage) || 10;
+  // Number of users per page (default is 10)
   const page = parseInt(req.query.page) || 1; // Page number (default is 1)
   try {
     // Find total number of users

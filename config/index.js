@@ -1,3 +1,4 @@
+const corsSetting = require("./cors");
 const dbConnect = require("./dbconnect");
 
-module.exports = { dbConnect };
+module.exports = { dbConnect,corsSetting };

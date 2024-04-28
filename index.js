@@ -1,4 +1,4 @@
-const { dbConnect } = require("./config");
+const { dbConnect, corsSetting } = require("./config");
 
 const express = require("express");
 const cors = require("cors");
@@ -11,7 +11,7 @@ const port = 3000;
 
 app.use(express.json());
 // Enable CORS for all routes
-app.use(cors());
+app.use(cors(corsSetting));
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

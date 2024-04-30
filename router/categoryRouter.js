@@ -52,23 +52,15 @@ categoryRouter.post("/", fileUpload.single("image"), async (req, res) => {
   try {
     const { name, description } = req.body;
 
-    if (!req.file) {
-      // without image 
-      const category = new Category({ name, description });
-      await category.save();
-      res.status(StatusCodes.OK).json(category);
-    } else {
-      // with image
-      const category = new Category({
-        name,
-        description,
-        imagePath: `/uploads/${req.file.filename}`,
-      });
-   ;
-      await category.save();
+    const category = new Category({
+      name,
+      description,
+      imagePath: req.file ? `/uploads/${req.file.filename}` : undefined,
+    });
 
-      res.status(StatusCodes.OK).json(category);
-    }
+    await category.save();
+
+    res.status(StatusCodes.OK).json(category);
   } catch (err) {
     res.status(StatusCodes.BAD_REQUEST).json({
       status: StatusCodes.BAD_REQUEST,

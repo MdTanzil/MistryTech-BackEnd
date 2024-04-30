@@ -21,13 +21,23 @@ categoryRouter.get("/", async (req, res) => {
     const startIndex = (page - 1) * perPage;
 
     // Query Category for the requested page
-    const categries = await Category.find().skip(startIndex).limit(perPage);
+    const categories = await Category.find().skip(startIndex).limit(perPage);
 
+    // Update image URLs for all categories
+    const categoriesWithImageUrl = categories.map((category) => {
+      if (category.imagePath) {
+        const fullImageUrl =
+          req.protocol + "://" + req.get("host") + category.imagePath;
+        return { ...category.toObject(), imageUrl: fullImageUrl };
+      } else {
+        return category.toObject();
+      }
+    });
     res.status(StatusCodes.OK).json({
       totalPages,
       currentPage: page,
       total: totalCategory,
-      categries,
+      categories: categoriesWithImageUrl,
     });
   } catch (error) {
     res.status(StatusCodes.BAD_REQUEST).json({
@@ -52,11 +62,11 @@ categoryRouter.post("/", fileUpload.single("image"), async (req, res) => {
       const category = new Category({
         name,
         description,
-        imagePath: `${serverAddress}/uploads/${req.file.filename}`,
+        imagePath: `/uploads/${req.file.filename}`,
       });
-      console.log("eituk thik ase");
+   ;
       await category.save();
-      console.log("eituk0 thik ase");
+
       res.status(StatusCodes.OK).json(category);
     }
   } catch (err) {
@@ -79,8 +89,26 @@ categoryRouter.get("/:slug", async (req, res) => {
         message: ReasonPhrases.NOT_FOUND,
       });
     }
-    res.status(StatusCodes.OK).json(category);
-  } catch (error) {}
+    // Check if imagePath exists
+    if (category.imagePath) {
+      const fullImageUrl =
+        req.protocol + "://" + req.get("host") + category.imagePath;
+      // Create a new object with imageUrl added
+      const categoryWithImageUrl = {
+        ...category.toObject(), // Convert Mongoose document to plain JavaScript object
+        imageUrl: fullImageUrl,
+      };
+      return res.status(StatusCodes.OK).json(categoryWithImageUrl);
+    } else {
+      // Send category without imageUrl
+      return res.status(StatusCodes.OK).json(category.toObject());
+    }
+  } catch (error) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      message: ReasonPhrases.BAD_REQUEST,
+    });
+  }
 });
 
 //update a Category

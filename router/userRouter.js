@@ -38,24 +38,35 @@ userRouter.get("/", async (req, res) => {
 });
 
 //Add a User
-userRouter.post("/", (req, res) => {
-  const users = req.body;
-  const user = new User(users);
-  user
-    .save()
-    .then((doc) => {
-      // console.log("Data saved successfully:", doc);
-      res.status(StatusCodes.OK).json(doc);
-    })
-    .catch((err) => {
-      console.error("Error saving data:", err);
-      res.status(StatusCodes.BAD_REQUEST).json({
-        status: StatusCodes.BAD_REQUEST,
-        message: ReasonPhrases.BAD_REQUEST,
-      });
-    });
-});
+userRouter.post("/", async (req, res) => {
+  try {
+    const { email } = req.body;
 
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      // User already exists
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        status: StatusCodes.BAD_REQUEST,
+        message: "User already exists",
+      });
+    }
+
+    // Create a new user
+    const user = new User(req.body);
+    const newUser = await user.save();
+
+    // Return the newly created user
+    res.status(StatusCodes.OK).json(newUser);
+  } catch (err) {
+    console.error("Error saving data:", err);
+    res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      message: ReasonPhrases.BAD_REQUEST,
+    });
+  }
+});
 //get a specific user
 
 userRouter.get("/:id", (req, res) => {

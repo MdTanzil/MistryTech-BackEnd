@@ -1,4 +1,5 @@
 const categoryRouter = require("./categoryRouter");
+const jwtRouter = require("./jwtRouter");
 const orderItemRouter = require("./orderItemRouter");
 const orderRouter = require("./orderRouter");
 const productRouter = require("./productRouter");
@@ -12,4 +13,5 @@ module.exports = {
   variantRouter,
   orderItemRouter,
   orderRouter,
+  jwtRouter,
 };

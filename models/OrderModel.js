@@ -8,10 +8,6 @@ const orderSchema = new Schema({
     required: true,
     trim: true,
   },
-  username: {
-    type: String,
-    required: true,
-  },
   totalAmount: {
     type: Number,
     min: 0,
@@ -24,18 +20,13 @@ const orderSchema = new Schema({
   },
   discountAmount: {
     type: Number,
-    required: true,
     min: 0,
     default: 0,
   },
   shippingAmount: {
     type: Number,
-    required: true,
     min: 0,
     default: 0,
-  },
-  color: {
-    type: String,
   },
   orderItem: [
     {
@@ -43,6 +34,18 @@ const orderSchema = new Schema({
       ref: "OrderItem",
     },
   ],
+  fullAddress: {
+    type: String,
+  },
+  state: {
+    type: String,
+  },
+  city: {
+    type: String,
+  },
+  zipCode: {
+    type: String,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -22,8 +22,6 @@ const adminVerify = (req, res, next) => {
       req.user = user;
       next();
     } catch (error) {}
-    req.decoded = decoded;
-    next();
   });
 };
 

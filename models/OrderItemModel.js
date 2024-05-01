@@ -3,14 +3,13 @@ const Schema = mongoose.Schema;
 
 // Variant Schema
 const orderItemSchema = new Schema({
-  productId: {
+  product: {
     type: Schema.Types.ObjectId,
     required: true,
     ref: "Product",
   },
-  productVariant: {
+  variant: {
     type: Schema.Types.ObjectId,
-    required: true,
     ref: "Variant",
   },
   quantity: {

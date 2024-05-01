@@ -1,34 +1,39 @@
 const { ReasonPhrases, StatusCodes } = require("http-status-codes");
-const { Variant } = require("../models");
-const { fileUpload } = require("../config");
+const { OrderItem } = require("../models");
+
 const express = require("express");
 
-const variantRouter = express.Router();
+const orderItemRouter = express.Router();
 // status code import
 
 // get product
-variantRouter.get("/", async (req, res) => {
+orderItemRouter.get("/", async (req, res) => {
   const perPage = parseInt(req.query.perPage) || 10;
-  // Number of variant per page (default is 10)
+  // Number of data per page (default is 10)
   const page = parseInt(req.query.page) || 1; // Page number (default is 1)
   try {
-    // Find total number of variants
-    const totalVariant = await Variant.countDocuments();
+    // Find total number of Item
+    const totalOrderItem = await OrderItem.countDocuments();
 
     // Calculate total number of pages
-    const totalPages = Math.ceil(totalVariant / perPage);
+    const totalPages = Math.ceil(totalOrderItem / perPage);
 
     // Calculate the starting index of variant for the requested page
     const startIndex = (page - 1) * perPage;
 
     // Query variant for the requested page
-    const variant = await Variant.find().skip(startIndex).limit(perPage);
+    const orderItem = await OrderItem.find()
+      .skip(startIndex)
+      .limit(perPage)
+      .populate("product")
+      .populate("variant")
+      .exec();
 
     res.status(StatusCodes.OK).json({
       totalPages,
       currentPage: page,
-      total: totalVariant,
-      variant,
+      total: totalOrderItem,
+      orderItem,
     });
   } catch (error) {
     res.status(StatusCodes.BAD_REQUEST).json({
@@ -38,15 +43,12 @@ variantRouter.get("/", async (req, res) => {
   }
 });
 
-//Add a variant
-variantRouter.post("/", fileUpload.array("images", 5), async (req, res) => {
+//Add a order item
+orderItemRouter.post("/", async (req, res) => {
   try {
-    const variant = new Variant(req.body);
-    if (req.files && req.files.length > 0) {
-      variant.images = req.files.map((file) => file.path);
-    }
-    await variant.save();
-    res.status(StatusCodes.OK).json(variant);
+    const orderItem = new OrderItem(req.body);
+    await orderItem.save();
+    res.status(StatusCodes.OK).json(orderItem);
   } catch (error) {
     res.status(StatusCodes.BAD_REQUEST).json({
       status: StatusCodes.BAD_REQUEST,
@@ -55,21 +57,23 @@ variantRouter.post("/", fileUpload.array("images", 5), async (req, res) => {
   }
 });
 
-//get a specific user
+//get a specific order item
 
-variantRouter.get("/:id", async (req, res) => {
+orderItemRouter.get("/:id", async (req, res) => {
   try {
-    const variant = await Variant.findById(req.params.id);
-    if (!variant) {
+    const orderItem = await OrderItem.findById(req.params.id)
+      .populate("product")
+      .populate("variant")
+      .exec();
+
+    if (!orderItem) {
       return res.status(StatusCodes.NOT_FOUND).json({
         status: StatusCodes.NOT_FOUND,
         message: ReasonPhrases.NOT_FOUND,
       });
     }
-    res.status(StatusCodes.OK).json(variant);
+    res.status(StatusCodes.OK).json(orderItem);
   } catch (error) {
-    console.log("call");
-
     res.status(StatusCodes.BAD_REQUEST).json({
       status: StatusCodes.BAD_REQUEST,
       message: ReasonPhrases.BAD_REQUEST,
@@ -77,15 +81,15 @@ variantRouter.get("/:id", async (req, res) => {
   }
 });
 
-//update a variant
+//update a order item
 
-variantRouter.put("/:id", (req, res) => {
+orderItemRouter.put("/:id", (req, res) => {
   const id = req.params.id;
-  const variant = req.body;
+  const orderItem = req.body;
 
   // const updateQuery = { $set: variant };
 
-  Variant.findByIdAndUpdate(id, variant, { new: true })
+  OrderItem.findByIdAndUpdate(id, orderItem, { new: true })
     .then((doc) => {
       res.status(StatusCodes.OK).json(doc);
     })
@@ -97,15 +101,15 @@ variantRouter.put("/:id", (req, res) => {
     });
 });
 
-//Delete a variant
+//Delete a order item
 
-variantRouter.delete("/:id", async (req, res) => {
+orderItemRouter.delete("/:id", async (req, res) => {
   try {
     const id = req.params.id;
 
-    const deletedVariant = await Variant.findByIdAndDelete(id);
+    const deletedOrderItem = await OrderItem.findByIdAndDelete(id);
 
-    if (!deletedVariant) {
+    if (!deletedOrderItem) {
       return res.status(StatusCodes.NOT_FOUND).json({
         status: StatusCodes.NOT_FOUND,
         message: ReasonPhrases.NOT_FOUND,
@@ -125,4 +129,4 @@ variantRouter.delete("/:id", async (req, res) => {
   }
 });
 
-module.exports = variantRouter;
+module.exports = orderItemRouter;

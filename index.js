@@ -7,6 +7,7 @@ const {
   categoryRouter,
   productRouter,
   variantRouter,
+  orderItemRouter,
 } = require("./router");
 
 const app = express();
@@ -35,6 +36,7 @@ app.use("/user", userRouter);
 app.use("/categories", categoryRouter);
 app.use("/products", productRouter);
 app.use("/variants", variantRouter);
+app.use("/order-item", orderItemRouter);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);

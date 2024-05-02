@@ -23,6 +23,7 @@ orderItemRouter.get("/", async (req, res) => {
 
     // Query variant for the requested page
     const orderItem = await OrderItem.find()
+      .sort({ createdAt: "desc" })
       .skip(startIndex)
       .limit(perPage)
       .populate("product")

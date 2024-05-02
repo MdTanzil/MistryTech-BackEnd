@@ -22,7 +22,10 @@ variantRouter.get("/", async (req, res) => {
     const startIndex = (page - 1) * perPage;
 
     // Query variant for the requested page
-    const variant = await Variant.find().skip(startIndex).limit(perPage);
+    const variant = await Variant.find()
+      .sort({ createdAt: "desc" })
+      .skip(startIndex)
+      .limit(perPage);
 
     res.status(StatusCodes.OK).json({
       totalPages,

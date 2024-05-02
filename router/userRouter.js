@@ -1,12 +1,13 @@
 const { ReasonPhrases, StatusCodes } = require("http-status-codes");
 const express = require("express");
 const { User } = require("../models");
+const { adminVerify } = require("../middlewares");
 
 const userRouter = express.Router();
 // status code import
 
 // get users
-userRouter.get("/", async (req, res) => {
+userRouter.get("/", adminVerify, async (req, res) => {
   const perPage = parseInt(req.query.perPage) || 10;
   // Number of users per page (default is 10)
   const page = parseInt(req.query.page) || 1; // Page number (default is 1)
@@ -21,7 +22,10 @@ userRouter.get("/", async (req, res) => {
     const startIndex = (page - 1) * perPage;
 
     // Query users for the requested page
-    const users = await User.find().skip(startIndex).limit(perPage);
+    const users = await User.find()
+      .sort({ createdAt: "desc" })
+      .skip(startIndex)
+      .limit(perPage);
 
     res.status(StatusCodes.OK).json({
       totalPages,

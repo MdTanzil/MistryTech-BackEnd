@@ -22,7 +22,10 @@ productRouter.get("/", async (req, res) => {
     const startIndex = (page - 1) * perPage;
 
     // Query product for the requested page
-    const products = await Product.find().skip(startIndex).limit(perPage);
+    const products = await Product.find()
+      .sort({ createdAt: "desc" })
+      .skip(startIndex)
+      .limit(perPage);
 
     res.status(StatusCodes.OK).json({
       totalPages,

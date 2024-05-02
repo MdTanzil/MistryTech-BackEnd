@@ -21,7 +21,10 @@ categoryRouter.get("/", async (req, res) => {
     const startIndex = (page - 1) * perPage;
 
     // Query Category for the requested page
-    const categories = await Category.find().skip(startIndex).limit(perPage);
+    const categories = await Category.find()
+      .sort({ createdAt: "desc" })
+      .skip(startIndex)
+      .limit(perPage);
 
     // Update image URLs for all categories
     const categoriesWithImageUrl = categories.map((category) => {

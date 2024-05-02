@@ -24,6 +24,7 @@ productRouter.get("/", async (req, res) => {
     // Query product for the requested page
     const products = await Product.find()
       .sort({ createdAt: "desc" })
+      .populate("variants")
       .skip(startIndex)
       .limit(perPage);
 
@@ -42,9 +43,15 @@ productRouter.get("/", async (req, res) => {
 });
 
 //Add a product
-productRouter.post("/", async (req, res) => {
+productRouter.post("/", fileUpload.array("images", 10), async (req, res) => {
   try {
-    const product = new Product(req.body);
+    // Extract image paths from req.files
+    const imagePaths = req.files.map((file) => file.path);
+    // Create a new product with image paths
+    const product = new Product({
+      ...req.body,
+      images: imagePaths,
+    });
     await product.save();
     res.status(StatusCodes.OK).json(product);
   } catch (error) {
@@ -78,19 +85,46 @@ productRouter.get("/:id", async (req, res) => {
 
 //update a product
 
-productRouter.put("/:id", (req, res) => {
-  const id = req.params.id;
-  const product = req.body;
-  Product.findByIdAndUpdate(id, product, { new: true })
-    .then((doc) => {
-      res.status(StatusCodes.OK).json(doc);
-    })
-    .catch((err) => {
-      res.status(StatusCodes.BAD_REQUEST).json({
-        status: StatusCodes.BAD_REQUEST,
-        message: ReasonPhrases.BAD_REQUEST,
+productRouter.put("/:id", fileUpload.array("images", 10), async (req, res) => {
+  try {
+    const id = req.params.id;
+    const productData = req.body;
+
+    // Find the product by ID
+    let product = await Product.findById(id);
+
+    // If the product doesn't exist, return 404
+    if (!product) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        status: StatusCodes.NOT_FOUND,
+        message: "Product not found",
       });
+    }
+
+    // Extract image paths from req.files if images are provided
+    let imagePaths = [];
+    if (req.files && req.files.length > 0) {
+      imagePaths = req.files.map((file) => file.path);
+    }
+
+    // Update the product with the new data
+    product.set({
+      ...productData,
+      images: imagePaths.length > 0 ? imagePaths : product.images, // Keep existing images if not provided in the request
     });
+
+    // Save the updated product
+    await product.save();
+
+    // Return the updated product
+    res.status(StatusCodes.OK).json(product);
+  } catch (error) {
+    // If any error occurs, return 400 with error message
+    res.status(StatusCodes.BAD_REQUEST).json({
+      status: StatusCodes.BAD_REQUEST,
+      message: error.message,
+    });
+  }
 });
 
 //Delete a product

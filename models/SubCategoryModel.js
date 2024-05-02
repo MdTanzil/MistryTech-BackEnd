@@ -1,39 +1,25 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const slugify = require("slugify");
-const productSchema = new Schema({
+
+const subCategorySchema = new Schema({
   name: {
     type: String,
     required: true,
   },
+
   description: {
     type: String,
   },
   slug: {
     type: String,
   },
-  images: [
-    {
-      type: String,
-    },
-  ],
   category: [
     {
       type: Schema.Types.ObjectId,
       ref: "Category",
     },
   ],
-  SubCategory: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: "SubCategory",
-    },
-  ],
-  price: {
-    type: Number,
-    required: true,
-    min: 0,
-  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -46,15 +32,10 @@ const productSchema = new Schema({
     type: Boolean,
     default: true,
   },
-  variants: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: "Variant",
-    },
-  ],
 });
-// Middleware to update 'updatedAt' and slug field before each save
-productSchema.pre("save", function (next) {
+
+// Middleware to update 'updatedAt' field before each save
+subCategorySchema.pre("save", function (next) {
   this.updatedAt = new Date();
   if (!this.isModified("name")) {
     return next();
@@ -63,6 +44,6 @@ productSchema.pre("save", function (next) {
   next();
 });
 
-const Product = mongoose.model("Product", productSchema);
+const SubCategory = mongoose.model("SubCategory", subCategorySchema);
 
-module.exports = Product;
+module.exports = SubCategory;

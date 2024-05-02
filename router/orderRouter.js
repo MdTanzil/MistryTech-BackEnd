@@ -51,7 +51,6 @@ orderRouter.get("/", async (req, res) => {
 //Add a order item
 orderRouter.post("/", async (req, res) => {
   try {
-    console.log(req.body);
     const order = new Order(req.body);
     await order.save();
     res.status(StatusCodes.OK).json(order);

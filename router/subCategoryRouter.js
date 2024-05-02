@@ -1,46 +1,35 @@
 const { ReasonPhrases, StatusCodes } = require("http-status-codes");
 const express = require("express");
-const { Category } = require("../models");
-const { fileUpload } = require("../config");
+const { SubCategory } = require("../models");
 const mongoose = require("mongoose");
 require("dotenv").config();
-const categoryRouter = express.Router();
-const serverAddress = process.env.SERVER_ADDRESS || "http://localhost:3000";
-// Get all categories
-categoryRouter.get("/", async (req, res) => {
+const subCategoryRouter = express.Router();
+// Get all subCategories
+subCategoryRouter.get("/", async (req, res) => {
   const perPage = parseInt(req.query.perPage) || 10; // Number of category per page (default is 10)
   const page = parseInt(req.query.page) || 1; // Page number (default is 1)
   try {
     // Find total number of category
-    const totalCategory = await Category.countDocuments();
+    const totalSubCategory = await SubCategory.countDocuments();
 
     // Calculate total number of pages
-    const totalPages = Math.ceil(totalCategory / perPage);
+    const totalPages = Math.ceil(totalSubCategory / perPage);
 
     // Calculate the starting index of users for the requested page
     const startIndex = (page - 1) * perPage;
 
-    // Query Category for the requested page
-    const categories = await Category.find()
+    // Query SubCategory for the requested page
+    const subCategories = await SubCategory.find()
       .sort({ createdAt: "desc" })
+      .populate("category")
       .skip(startIndex)
       .limit(perPage);
 
-    // Update image URLs for all categories
-    const categoriesWithImageUrl = categories.map((category) => {
-      if (category.imagePath) {
-        const fullImageUrl =
-          req.protocol + "://" + req.get("host") + category.imagePath;
-        return { ...category.toObject(), imageUrl: fullImageUrl };
-      } else {
-        return category.toObject();
-      }
-    });
     res.status(StatusCodes.OK).json({
       totalPages,
       currentPage: page,
-      total: totalCategory,
-      categories: categoriesWithImageUrl,
+      total: totalSubCategory,
+      subCategories: subCategories,
     });
   } catch (error) {
     res.status(StatusCodes.BAD_REQUEST).json({
@@ -51,15 +40,9 @@ categoryRouter.get("/", async (req, res) => {
 });
 
 //Create a new category
-categoryRouter.post("/", fileUpload.single("image"), async (req, res) => {
+subCategoryRouter.post("/", async (req, res) => {
   try {
-    const { name, description } = req.body;
-
-    const category = new Category({
-      name,
-      description,
-      imagePath: req.file ? `/uploads/${req.file.filename}` : undefined,
-    });
+    const category = new SubCategory(req.body);
 
     await category.save();
 
@@ -72,19 +55,22 @@ categoryRouter.post("/", fileUpload.single("image"), async (req, res) => {
   }
 });
 
-//get a specific Category
+//get a specific SubCategory
 
-categoryRouter.get("/:slugOrId", async (req, res) => {
+subCategoryRouter.get("/:slugOrId", async (req, res) => {
   try {
     const slugOrId = req.params.slugOrId;
     let category;
+
     // Check if slugOrId is a valid ObjectId
     if (mongoose.Types.ObjectId.isValid(slugOrId)) {
       // If it's a valid ObjectId, search by id
-      category = await Category.findById(slugOrId);
+      category = await SubCategory.findById(slugOrId).populate("category");
     } else {
       // If it's not a valid ObjectId, search by slug
-      category = await Category.findOne({ slug: slugOrId });
+      category = await SubCategory.findOne({ slug: slugOrId }).populate(
+        "category"
+      );
     }
 
     if (!category) {
@@ -93,21 +79,8 @@ categoryRouter.get("/:slugOrId", async (req, res) => {
         message: ReasonPhrases.NOT_FOUND,
       });
     }
-    console.log(category);
-    // Check if imagePath exists
-    if (category.imagePath) {
-      const fullImageUrl =
-        req.protocol + "://" + req.get("host") + category.imagePath;
-      // Create a new object with imageUrl added
-      const categoryWithImageUrl = {
-        ...category.toObject(), // Convert Mongoose document to plain JavaScript object
-        imageUrl: fullImageUrl,
-      };
-      return res.status(StatusCodes.OK).json(categoryWithImageUrl);
-    } else {
-      // Send category without imageUrl
-      return res.status(StatusCodes.OK).json(category.toObject());
-    }
+
+    return res.status(StatusCodes.OK).json(category.toObject());
   } catch (error) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       status: StatusCodes.BAD_REQUEST,
@@ -116,15 +89,20 @@ categoryRouter.get("/:slugOrId", async (req, res) => {
   }
 });
 
-//update a Category
+//update a SubCategory
 
-categoryRouter.put("/:id", fileUpload.single("image"), async (req, res) => {
+subCategoryRouter.put("/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const updatedCategory = req.body;
+    const updatedSubCategory = req.body;
 
-    // Find the category by ID
-    let category = await Category.findById(id);
+    const category = await SubCategory.findByIdAndUpdate(
+      id,
+      updatedSubCategory,
+      {
+        new: true,
+      }
+    );
 
     if (!category) {
       return res.status(StatusCodes.NOT_FOUND).json({
@@ -132,14 +110,6 @@ categoryRouter.put("/:id", fileUpload.single("image"), async (req, res) => {
         message: ReasonPhrases.NOT_FOUND,
       });
     }
-    // Update category fields
-    category.set(updatedCategory);
-    // Update imagePath if a new image is provided
-    if (req.file) {
-      category.imagePath = `/uploads/${req.file.filename}`;
-    }
-    // Save the updated category
-    await category.save();
 
     res.status(StatusCodes.OK).json(category);
   } catch (error) {
@@ -150,15 +120,15 @@ categoryRouter.put("/:id", fileUpload.single("image"), async (req, res) => {
   }
 });
 
-//Delete a Category
+//Delete a SubCategory
 
-categoryRouter.delete("/:id", async (req, res) => {
+subCategoryRouter.delete("/:id", async (req, res) => {
   try {
     const id = req.params.id;
 
-    const deletedCategory = await Category.findByIdAndDelete(id);
+    const deletedSubCategory = await SubCategory.findByIdAndDelete(id);
 
-    if (!deletedCategory) {
+    if (!deletedSubCategory) {
       return res.status(StatusCodes.NOT_FOUND).json({
         status: StatusCodes.NOT_FOUND,
         message: ReasonPhrases.NOT_FOUND,
@@ -178,4 +148,4 @@ categoryRouter.delete("/:id", async (req, res) => {
   }
 });
 
-module.exports = categoryRouter;
+module.exports = subCategoryRouter;

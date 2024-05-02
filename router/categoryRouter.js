@@ -5,7 +5,6 @@ const { fileUpload } = require("../config");
 const mongoose = require("mongoose");
 require("dotenv").config();
 const categoryRouter = express.Router();
-const serverAddress = process.env.SERVER_ADDRESS || "http://localhost:3000";
 // Get all categories
 categoryRouter.get("/", async (req, res) => {
   const perPage = parseInt(req.query.perPage) || 10; // Number of category per page (default is 10)

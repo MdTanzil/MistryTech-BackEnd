@@ -1,4 +1,4 @@
-const allowedOrigins = ["http://localhost:5173/", "https://mistrytech.com.bd/"];
+const allowedOrigins = ["http://localhost:5173", "https://mistrytech.com.bd"];
 
 const corsSetting = {
   origin: function (origin, callback) {
